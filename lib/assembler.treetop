@@ -1,0 +1,224 @@
+grammar Assembler
+  
+  rule syntax
+    (line_end / label_line / labelled_command / command)* <Lines>
+  end
+
+  rule label_line
+    label ":" line_end <Container>
+  end
+
+  rule label
+    [a-zA-Z\_0-9]+ <LabelLiteral>
+  end 
+
+  rule labelled_command
+    whitespace? label ":" whitespace? command <Container>
+  end
+
+  rule command  
+    whitespace? instruction whitespace? line_end <Container>
+  end
+
+  rule comment
+    whitespace? "#" [^\n]* EOL
+  end
+
+  rule instruction
+    nop /
+    mov /
+    cmp /
+    mod /
+    rem /
+    inc /
+    jmp /
+    jg /
+    jge /
+    je /
+    jne /
+    jl /
+    jle /
+    prn /
+    add /
+    sub /
+    push /
+    pop /
+    call /
+    ret /
+    dec /
+    mul /
+    div /
+    and_op /
+    not_op /
+    or_op / 
+    xor /
+    shl /
+    shr 
+  end
+
+  rule whitespace
+    [ \t\v]+
+  end
+
+  rule line_end
+    comment /
+    ( whitespace? EOL )+
+  end
+
+  rule EOL
+    "\r\n" / "\r" / "\n"
+  end
+
+  rule param_sep
+    whitespace? "," whitespace?
+  end
+
+  rule integer_literal
+    [0-9]+ <IntegerLiteral>
+  end
+
+  rule non_zero_integer_literal
+    "0"* [1-9]+ [0-9]* <IntegerLiteral>
+  end  
+
+  rule to_label
+    whitespace label <LabelLiteral>
+  end
+
+  rule any
+    destination / integer_literal
+  end
+
+  rule any_non_zero
+    destination / non_zero_integer_literal
+  end  
+
+  rule nop 
+    "nop" <NopInstruction>
+  end
+
+  rule mov
+    "mov" whitespace destination param_sep any <MovInstruction>
+  end
+
+  rule cmp
+    "cmp" whitespace any param_sep any <CmpInstruction>
+  end
+
+  rule add
+    "add" whitespace destination param_sep any <AddInstruction>
+  end
+
+  rule sub
+    "sub" whitespace destination param_sep any <SubInstruction>
+  end
+
+  rule mul
+    "mul" whitespace destination param_sep any <MulInstruction>
+  end
+
+  rule div
+    "div" whitespace destination param_sep any_non_zero <DivInstruction>
+  end
+
+  rule mod
+    "mod" whitespace any param_sep any <ModInstruction>
+  end  
+
+  rule and_op
+    "and" whitespace destination param_sep any <AndInstruction>
+  end  
+
+  rule or_op
+    "or" whitespace destination param_sep any <OrInstruction>
+  end
+
+  rule not_op
+    "not" whitespace destination <NotInstruction>
+  end  
+
+  rule xor
+    "xor" whitespace destination param_sep any <XorInstruction>
+  end  
+
+  rule shl
+    "shl" whitespace destination param_sep any <ShlInstruction>
+  end  
+
+  rule shr
+    "shr" whitespace destination param_sep any <ShrInstruction>
+  end  
+
+
+  rule rem
+    "rem" whitespace destination <RemInstruction>
+  end
+
+  rule inc
+    "inc" whitespace destination <IncInstruction>
+  end
+
+  rule dec
+    "dec" whitespace destination <DecInstruction>
+  end  
+
+  rule jmp
+    "jmp" to_label <JmpInstruction>
+  end
+
+  rule jle
+    "jle" to_label <JleInstruction>
+  end
+
+  rule je
+    "je" to_label <JeInstruction>
+  end
+
+  rule jl
+    "jl" to_label <JlInstruction>
+  end
+
+  rule jg
+    "jg" to_label <JgInstruction>
+  end
+
+  rule jge
+    "jge" to_label <JgeInstruction>
+  end
+
+  rule jne
+    "jne" to_label <JneInstruction>
+  end
+
+  rule push
+    "push" whitespace any <PushInstruction>
+  end
+
+  rule pop
+    "pop" whitespace any <PopInstruction>
+  end
+
+  rule call
+    "call" to_label <CallInstruction>
+  end
+
+  rule ret
+    "ret" <RetInstruction>
+  end
+
+  rule prn
+    "prn" whitespace any <PrnInstruction>
+  end
+
+  rule destination
+    "eax" <Register> /
+    "ebx" <Register> /
+    "ecx" <Register> /
+    "edx" <Register> /
+    "esp" <Register> /
+    "ebp" <Register> /
+    "[" [0-9]+ "]" <OffsetLiteral>
+  end
+
+
+end
