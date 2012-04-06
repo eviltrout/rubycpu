@@ -113,7 +113,7 @@ There are specs for compiling and running every command the CPU is capable of. S
 
 * [@notch](http://twitter.com/notch)'s tweets about designing a CPU that inspired the project.
 
-* My former co-worker [@aronmgough](http://twitter.com//aronmgough)'s excellent [tutorial on treetop](http://thingsaaronmade.com/blog/a-quick-intro-to-writing-a-parser-using-treetop.html) which inspired my parser.
+* My former co-worker [@aronmgough](http://twitter.com/aaronmgough)'s excellent [tutorial on treetop](http://thingsaaronmade.com/blog/a-quick-intro-to-writing-a-parser-using-treetop.html) which inspired my parser.
 
 ### License
 
