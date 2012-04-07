@@ -99,7 +99,16 @@ module Assembler
 
   class OffsetLiteral < Treetop::Runtime::SyntaxNode
     def to_array
-      Offset.new(self.text_value.gsub(/\[|\]/, '').to_i)
+      val = self.text_value.gsub(/\[|\]/, '')
+
+      # If it's a hex value, convert it
+      if val =~ /[0-9a-f]+h/
+        val = val[0..-2].to_i(16)
+      else
+        val = val.to_i        
+      end 
+
+      Offset.new(val)
     end
   end  
 

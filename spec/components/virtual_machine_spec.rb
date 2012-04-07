@@ -36,6 +36,12 @@ describe VirtualMachine do
                               mov [101], [100]
                               mov ebx, [101]").ebx.must_equal 10
     end
+
+    it 'can address by hex or decimal address' do
+      VirtualMachine.execute("mov [10h], 123
+                              mov eax, [16]").eax.must_equal 123
+    end
+
   end
 
   describe 'add' do

@@ -217,7 +217,8 @@ grammar Assembler
     "edx" <Register> /
     "esp" <Register> /
     "ebp" <Register> /
-    "[" [0-9]+ "]" <OffsetLiteral>
+    "[" [0-9]+ "]" <OffsetLiteral> /
+    "[" [0-9a-f]+ "h]" <OffsetLiteral>
   end
 
 
