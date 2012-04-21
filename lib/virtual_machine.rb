@@ -36,7 +36,7 @@ class VirtualMachine
   class DivideByZero < Exception; end
 
   # Operations executed
-  attr_reader :op_count
+  attr_reader :op_count, :end_of_memory, :memory
 
   # Memory map
   # [eax, ebx, ecx, edx, esp, ebp] [eip] [rem] [flags] .. [stack]
