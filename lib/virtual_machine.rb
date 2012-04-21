@@ -17,10 +17,11 @@ end
 
 class ActionSet < Array
 
-  def run operation
+  def run opcode
+    operation = ByteCode.opcodes_inverted[ opcode & ByteCode.op_mask ]
     action = self.find() { |action| action.op == operation }
     if action.nil?
-      raise InvalidProgram, "Don't understand the opcode %b" % operation
+      raise VirtualMachine::InvalidProgram, "Don't understand the opcode %b" % opcode
     else
       action.run() 
     end
@@ -155,7 +156,7 @@ class VirtualMachine
     as = ActionSet.new 
     as << Action.new( self, :mov ) { |obj| obj.src_to_dest {|dest, src| src} }
     as << Action.new( self, :cmp ) do |obj, mem| 
-      mem[ ByteCode.flags_location] = 0
+      obj.memory[ ByteCode.flags_location] = 0
       result = obj.dest_value - obj.src_value
       if (result == 0)
         obj.zf = true
@@ -235,9 +236,7 @@ class VirtualMachine
   def run    
     while eip < @buffer.size
 
-      opcode = @buffer[eip]
-      opcode = ByteCode.opcodes_inverted[opcode & ByteCode.op_mask]
-      @actions.run( opcode )
+      @actions.run( @buffer[eip] )
 
       # Keep track of how many operations we've done
       @op_count += 1
