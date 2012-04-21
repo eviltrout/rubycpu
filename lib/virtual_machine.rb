@@ -1,5 +1,32 @@
 require './lib/byte_code'
 
+class Action
+
+  attr_reader :callon, :op, :block
+
+  def initialize callon, op, &block
+    @callon, @op = callon, op
+    @block = block
+  end
+
+  def run
+    @block.call( @callon )
+  end
+
+end
+
+class ActionSet < Array
+
+  def run operation
+    action = self.find() { |action| action.op == operation }
+    if action.nil?
+      raise InvalidProgram, "Don't understand the opcode %b" % operation
+    else
+      action.run() 
+    end
+  end
+end
+
 class VirtualMachine
 
   # Exceptions that can be raised by a program
