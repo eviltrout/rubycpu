@@ -55,6 +55,8 @@ class VirtualMachine
     self.esp = @end_of_memory
     @stack_end = self.esp - VirtualMachine.stack_size
     @op_count = 0
+
+    @actions = actions_setup()
   end
 
   # Accessors for registers
@@ -147,94 +149,95 @@ class VirtualMachine
   def change_dest
     @memory[@buffer[eip+1]] = yield(dest_value.to_i)
     self.eip += 2
-  end  
+  end
+
+  def actions_setup
+    as = ActionSet.new 
+    as << Action.new( self, :mov ) { |obj| obj.src_to_dest {|dest, src| src} }
+    as << Action.new( self, :cmp ) do |obj, mem| 
+      mem[ ByteCode.flags_location] = 0
+      result = obj.dest_value - obj.src_value
+      if (result == 0)
+        obj.zf = true
+      elsif (result < 0)
+        self.sf = true
+      end
+      obj.eip += 3
+    end
+    as << Action.new( self, :nop ) { |obj| obj.eip += 1}
+    as << Action.new( self, :jmp ) { |obj| obj.eip = obj.dest_value }
+    as << Action.new( self, :mod ) do |obj| 
+      obj.rem = obj.dest_value.to_i % obj.src_value.to_i
+      obj.eip += 3
+    end
+    as << Action.new( self, :rem ) { |obj| obj.change_dest {rem} }
+    as << Action.new( self, :inc ) { |obj| obj.change_dest { |d| d+1 } } 
+    as << Action.new( self, :dec ) { |obj| obj.change_dest { |d| d-1 } } 
+    as << Action.new( self, :not ) { |obj| obj.change_dest { |d| ~d } } 
+    as << Action.new( self, :add ) { |obj| obj.src_to_dest { |d, s| d+s } }
+    as << Action.new( self, :sub ) { |obj| obj.src_to_dest { |d, s| d-s } }
+    as << Action.new( self, :mul ) { |obj| obj.src_to_dest { |d, s| d*s } }
+    as << Action.new( self, :shl ) { |obj| obj.src_to_dest { |d, s| d<<s } }
+    as << Action.new( self, :shr ) { |obj| obj.src_to_dest { |d, s| d>>s } }
+    as << Action.new( self, :div ) do |obj| 
+      obj.src_to_dest do |dest, src|
+        raise DivideByZero.new if src == 0
+        dest / src
+      end
+    end
+    as << Action.new( self, :and ) { |obj| obj.src_to_dest { |d, s| d & s } }
+    as << Action.new( self, :or  ) { |obj| obj.src_to_dest { |d, s| d | s } }
+    as << Action.new( self, :xor ) { |obj| obj.src_to_dest { |d, s| d ^ s } }
+    as << Action.new( self, :je  ) do |obj| 
+      obj.eip = obj.zf ? obj.dest_value : obj.eip + 2 
+    end
+    as << Action.new( self, :jne ) do |obj| 
+      obj.eip = !obj.zf ? obj.dest_value : obj.eip + 2        
+    end
+    as << Action.new( self, :jne ) do |obj| 
+        obj.eip = (obj.sf != obj.of) ? obj.dest_value : obj.eip + 2
+    end
+    as << Action.new( self, :jne ) do |obj| 
+        obj.eip = (!obj.zf and (obj.sf == obj.of)) ? obj.dest_value : obj.eip + 2        
+    end
+    as << Action.new( self, :jne ) do |obj| 
+        obj.eip = (obj.zf or (obj.sf != obj.of)) ? obj.dest_value : obj.eip + 2      
+    end
+    as << Action.new( self, :jne ) do |obj| 
+        obj.eip = (obj.sf == obj.of) ? obj.dest_value : obj.eip + 2        
+    end
+    as << Action.new( self, :prn ) do |obj|
+      obj.output(obj.dest_value.to_s)
+      obj.eip += 2
+    end 
+    as << Action.new( self, :push ) do |obj|
+      obj.push(obj.dest_value)
+      obj.eip += 2        
+    end
+    as << Action.new( self, :pop ) do |obj|
+      obj.esp += 1
+      raise InvalidStack.new if obj.esp > obj.end_of_memory
+      obj.change_dest { obj.memory[obj.esp] }
+    end
+    as << Action.new( self, :call ) do |obj|
+        obj.push(obj.eip+2)
+        obj.eip = obj.dest_value
+    end
+    as << Action.new( self, :ret ) do |obj|
+      obj.esp +=1 
+      raise InvalidStack.new if obj.esp > obj.end_of_memory
+      obj.eip = @memory[obj..esp]
+    end
+    
+    return as
+  end
 
   def run    
     while eip < @buffer.size
 
       opcode = @buffer[eip]
-      case ByteCode.opcodes_inverted[opcode & ByteCode.op_mask]
-      when :mov
-        src_to_dest {|dest, src| src}
-      when :cmp
-        @memory[ByteCode.flags_location] = 0
-
-        result = (dest_value - src_value)
-        if (result == 0) 
-          self.zf = true
-        elsif (result < 0)
-          self.sf = true
-        end
-
-        self.eip += 3
-      when :nop
-        self.eip += 1
-      when :jmp
-        self.eip = dest_value
-      when :mod
-        self.rem = dest_value.to_i % src_value.to_i
-        self.eip += 3
-      when :rem
-        change_dest {rem}
-      when :inc
-        change_dest {|dest| dest + 1}
-      when :dec   
-        change_dest {|dest| dest - 1}    
-      when :not
-        change_dest {|dest| ~dest}        
-      when :add
-        src_to_dest {|dest, src| dest + src}        
-      when :sub
-        src_to_dest {|dest, src| dest - src}
-      when :mul
-        src_to_dest {|dest, src| dest * src}
-      when :shl
-        src_to_dest {|dest, src| dest << src}
-      when :shr
-        src_to_dest {|dest, src| dest >> src}
-      when :div
-        src_to_dest do |dest, src|
-          raise DivideByZero.new if src == 0
-          dest / src
-        end
-      when :and
-        src_to_dest {|dest, src| dest & src}
-      when :or
-        src_to_dest {|dest, src| dest | src}
-      when :xor
-        src_to_dest {|dest, src| dest ^ src}
-      when :je
-        self.eip = self.zf ? dest_value : eip + 2
-      when :jne
-        self.eip = !self.zf ? dest_value : eip + 2        
-      when :jl
-        self.eip = (self.sf != self.of) ? dest_value : eip + 2
-      when :jg
-        self.eip = (!self.zf and (self.sf == self.of)) ? dest_value : eip + 2        
-      when :jle
-        self.eip = (self.zf or (self.sf != self.of)) ? dest_value : eip + 2      
-      when :jge  
-        self.eip = (self.sf == self.of) ? dest_value : eip + 2        
-      when :prn
-        output(dest_value.to_s)
-        self.eip += 2
-      when :push
-        push(dest_value)
-        self.eip += 2        
-      when :pop
-        self.esp += 1
-        raise InvalidStack.new if self.esp > @end_of_memory
-        change_dest { @memory[self.esp] }
-      when :call
-        push(eip+2)
-        self.eip = dest_value
-      when :ret
-        self.esp +=1 
-        raise InvalidStack.new if self.esp > @end_of_memory
-        self.eip = @memory[self.esp]
-      else
-        raise InvalidProgram, "Don't understand the opcode %b" % opcode
-      end
+      opcode = ByteCode.opcodes_inverted[opcode & ByteCode.op_mask]
+      @actions.run( opcode )
 
       # Keep track of how many operations we've done
       @op_count += 1
