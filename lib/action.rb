@@ -24,15 +24,8 @@ class ActionSet < Array
     @setup_done = false
   end
 
-  def actionsetup( key, &block )
-    self << Action.new( @vm, key, &block )
-  end
-
   def setup!
-    ACTIONMAP.each_pair do |key, block|
-      actionsetup( key, &block )
-    end
-
+    ACTIONMAP.each_pair { |key, block| self << Action.new( @vm, key, &block ) }
     @setup_done = true
   end
 
