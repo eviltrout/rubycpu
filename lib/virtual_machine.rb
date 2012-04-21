@@ -21,6 +21,7 @@ class ActionSet < Array
     operation = ByteCode.opcodes_inverted[ opcode & ByteCode.op_mask ]
     action = self.find() { |action| action.op == operation }
     if action.nil?
+      puts "An Error: operation: \"#{operation}\", opcode: \"#{opcode}\""
       raise VirtualMachine::InvalidProgram, "Don't understand the opcode %b" % opcode
     else
       action.run() 
@@ -195,16 +196,16 @@ class VirtualMachine
     as << Action.new( self, :jne ) do |obj| 
       obj.eip = !obj.zf ? obj.dest_value : obj.eip + 2        
     end
-    as << Action.new( self, :jne ) do |obj| 
+    as << Action.new( self, :jl ) do |obj| 
         obj.eip = (obj.sf != obj.of) ? obj.dest_value : obj.eip + 2
     end
-    as << Action.new( self, :jne ) do |obj| 
+    as << Action.new( self, :jg ) do |obj| 
         obj.eip = (!obj.zf and (obj.sf == obj.of)) ? obj.dest_value : obj.eip + 2        
     end
-    as << Action.new( self, :jne ) do |obj| 
+    as << Action.new( self, :jle ) do |obj| 
         obj.eip = (obj.zf or (obj.sf != obj.of)) ? obj.dest_value : obj.eip + 2      
     end
-    as << Action.new( self, :jne ) do |obj| 
+    as << Action.new( self, :jge ) do |obj| 
         obj.eip = (obj.sf == obj.of) ? obj.dest_value : obj.eip + 2        
     end
     as << Action.new( self, :prn ) do |obj|
@@ -227,7 +228,7 @@ class VirtualMachine
     as << Action.new( self, :ret ) do |obj|
       obj.esp +=1 
       raise InvalidStack.new if obj.esp > obj.end_of_memory
-      obj.eip = @memory[obj..esp]
+      obj.eip = obj.memory[obj.esp]
     end
     
     return as
