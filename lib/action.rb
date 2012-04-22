@@ -20,6 +20,7 @@ class ActionSet < Array
   attr_reader :vm, :setup_done
 
   def initialize( vm )
+    super()
     @vm = vm
     @setup_done = false
   end
@@ -29,16 +30,4 @@ class ActionSet < Array
     @setup_done = true
   end
 
-  def run opcode
-    raise "ActionSet was not setup!" unless @setup_done
-
-    operation = ByteCode.opcodes_inverted[ opcode & ByteCode.op_mask ]
-    action = self.find() { |action| action.op == operation }
-    if action.nil?
-      puts "An Error: operation: \"#{operation}\", opcode: \"#{opcode}\""
-      raise VirtualMachine::InvalidProgram, "Don't understand the opcode %b" % opcode
-    else
-      action.run() 
-    end
-  end
 end

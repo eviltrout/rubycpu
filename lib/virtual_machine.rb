@@ -1,7 +1,6 @@
 require './lib/byte_code'
 require './lib/action'
 
-
 class VirtualMachine
 
   # Exceptions that can be raised by a program
@@ -127,9 +126,22 @@ class VirtualMachine
     self.eip += 2
   end
 
-  def run    
+  def run
+
+    actionset = ActionSet.new( self )
+    actionset.setup!
+
     while eip < @buffer.size
-      @actions.run( @buffer[eip] )
+      opcode = @buffer[eip]
+      operation = ByteCode.opcodes_inverted[ opcode & ByteCode.op_mask ]
+      action = actionset.find() { |action| action.op == operation }
+
+      if action.nil?
+        puts "An Error: operation: \"#{operation}\", opcode: \"#{opcode}\""
+        raise VirtualMachine::InvalidProgram, "Don't understand the opcode %b" % opcode
+      else
+        action.run() 
+      end
 
       # Keep track of how many operations we've done
       @op_count += 1
