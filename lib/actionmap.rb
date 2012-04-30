@@ -1,6 +1,6 @@
 class VirtualMachine
 
-  ACTIONMAP = {
+  ACTIONS = {
 
       :mov => lambda { |vm| vm.src_to_dest {|dest, src| src} },
 
