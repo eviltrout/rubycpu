@@ -31,7 +31,7 @@ class VirtualMachine
     @op_count = 0
 
     @actions = ActionSet.new(self)
-    @actions.setup!
+    @actions.setup!( VirtualMachine::ACTIONMAP )
   end
 
   # Accessors for registers
@@ -127,14 +127,10 @@ class VirtualMachine
   end
 
   def run
-
-    actionset = ActionSet.new( self )
-    actionset.setup!( VirtualMachine::ACTIONMAP )
-
     while eip < @buffer.size
       opcode = @buffer[eip]
       operation = ByteCode.opcodes_inverted[ opcode & ByteCode.op_mask ]
-      action = actionset.find() { |action| action.op == operation }
+      action = @actions.find() { |action| action.op == operation }
 
       if action.nil?
         puts "An Error: operation: \"#{operation}\", opcode: \"#{opcode}\""
