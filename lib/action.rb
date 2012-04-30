@@ -15,7 +15,7 @@ class Action
 
 end
 
-class ActionSet < Hash
+class ActionMap < Hash
 
   attr_reader :vm, :setup_done
 

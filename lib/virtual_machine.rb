@@ -30,8 +30,8 @@ class VirtualMachine
     @stack_end = self.esp - VirtualMachine.stack_size
     @op_count = 0
 
-    @actions = ActionSet.new(self)
-    @actions.setup!( VirtualMachine::ACTIONMAP )
+    @actions = ActionMap.new(self)
+    @actions.setup!( VirtualMachine::ACTIONS )
   end
 
   # Accessors for registers
