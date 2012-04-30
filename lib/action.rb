@@ -1,4 +1,4 @@
-require './lib/actionmap'
+require './lib/actions'
 
 class Action
 
