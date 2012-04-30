@@ -129,7 +129,7 @@ class VirtualMachine
   def run
 
     actionset = ActionSet.new( self )
-    actionset.setup!
+    actionset.setup!( VirtualMachine::ACTIONMAP )
 
     while eip < @buffer.size
       opcode = @buffer[eip]
