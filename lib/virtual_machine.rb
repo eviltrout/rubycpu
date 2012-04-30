@@ -130,13 +130,12 @@ class VirtualMachine
     while eip < @buffer.size
       opcode = @buffer[eip]
       operation = ByteCode.opcodes_inverted[ opcode & ByteCode.op_mask ]
-      action = @actions.find() { |action| action.op == operation }
 
-      if action.nil?
+      if @actions[ operation ].nil?
         puts "An Error: operation: \"#{operation}\", opcode: \"#{opcode}\""
         raise VirtualMachine::InvalidProgram, "Don't understand the opcode %b" % opcode
       else
-        action.run() 
+        @actions[ operation ].run() 
       end
 
       # Keep track of how many operations we've done

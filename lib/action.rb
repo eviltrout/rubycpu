@@ -2,20 +2,20 @@ require './lib/actionmap'
 
 class Action
 
-  attr_reader :callon, :op, :block
+  attr_reader :call_on, :block
 
-  def initialize callon, op, &block
-    @callon, @op = callon, op
+  def initialize call_on, &block
+    @call_on = call_on
     @block = block
   end
 
   def run
-    @block.call( @callon )
+    @block.call( @call_on )
   end
 
 end
 
-class ActionSet < Array
+class ActionSet < Hash
 
   attr_reader :vm, :setup_done
 
@@ -26,7 +26,9 @@ class ActionSet < Array
   end
 
   def setup!( instruction_set )
-    instruction_set.each_pair { |key, block| self << Action.new( @vm, key, &block ) }
+    instruction_set.each_pair do |key, block|
+      self[ key ] = Action.new( @vm, &block )
+    end
     @setup_done = true
   end
 
