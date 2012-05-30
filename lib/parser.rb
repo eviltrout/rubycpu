@@ -30,9 +30,24 @@ class Parser
     # of essentially useless nodes
     self.clean_tree(tree)
 
+    tree = tree.to_array
+
+    include_includes( tree )
     # Convert the AST into an array representation of the input
     # structure and return it
-    return tree.to_array
+    puts "#{tree}"
+    return tree
+  end
+
+  def self.include_includes(tree)
+    tree.map! do |node|
+      if node.is_a? Assembler::IncludeInstruction
+        tree.insert( tree.find_index(node), self.parse( File.read( node.text_value ) ) )
+        tree.delete node
+      else
+        node
+      end
+    end
   end
   
   private
