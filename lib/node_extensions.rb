@@ -76,6 +76,7 @@ module Assembler
   class ShlInstruction < Instruction; end;
   class ShrInstruction < Instruction; end;
 
+  class IncludeInstruction < Instruction; end;
   
   # Literals and Registers
 
