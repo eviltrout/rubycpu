@@ -76,7 +76,11 @@ module Assembler
   class ShlInstruction < Instruction; end;
   class ShrInstruction < Instruction; end;
 
-  class IncludeInstruction < Instruction; end;
+  class IncludeInstruction < Instruction 
+    def to_array
+      self
+    end
+  end
   
   # Literals and Registers
 
