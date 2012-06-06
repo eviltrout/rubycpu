@@ -22,6 +22,7 @@ class Parser
     # If the AST is nil then there was an error during parsing
     # we need to report a simple error message to help the user
     if(tree.nil?)
+      p @@parser.failure_reason
       raise ParserException, "Parse error at offset: #{@@parser.index}"
     end
 
@@ -31,8 +32,8 @@ class Parser
     self.clean_tree(tree)
 
     tree = tree.to_array
-
     include_includes( tree )
+
     # Convert the AST into an array representation of the input
     # structure and return it
     puts "#{tree}"
@@ -40,9 +41,11 @@ class Parser
   end
 
   def self.include_includes(tree)
-    tree.map! do |node|
+    tree.map! do |ary|
+      node = ary.first
       if node.is_a? Assembler::IncludeInstruction
-        tree.insert( tree.find_index(node), self.parse( File.read( node.text_value ) ) )
+        p "include found!"
+        tree.insert( tree.find_index(node), self.parse( File.read( node.asm_file ) ) ) # TODO can not read file from node
         tree.delete node
       else
         node
