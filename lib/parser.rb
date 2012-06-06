@@ -36,20 +36,16 @@ class Parser
 
     # Convert the AST into an array representation of the input
     # structure and return it
-    puts "#{tree}"
     return tree
   end
 
   def self.include_includes(tree)
-    tree.map! do |ary|
+    tree.select { |a| a.first.is_a? Assembler::IncludeInstruction }.each do |ary|
       node = ary.first
-      if node.is_a? Assembler::IncludeInstruction
-        p "include found!"
-        tree.insert( tree.find_index(node), self.parse( File.read( node.asm_file ) ) ) # TODO can not read file from node
-        tree.delete node
-      else
-        node
-      end
+      src = File.read( node.include )
+      new_tree = parse( src )
+      tree.insert( tree.find_index(ary), *new_tree )
+      tree.delete ary 
     end
   end
   
