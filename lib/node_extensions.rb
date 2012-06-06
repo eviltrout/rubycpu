@@ -76,6 +76,20 @@ module Assembler
   class ShlInstruction < Instruction; end;
   class ShrInstruction < Instruction; end;
 
+  class IncludeInstruction < Instruction 
+    def include 
+      self.elements.select { |n| n.is_a? AssemblerFile }.first.include
+    end
+    def to_array
+      self
+    end
+  end
+
+  class AssemblerFile < Treetop::Runtime::SyntaxNode
+    def include 
+      self.text_value
+    end
+  end 
   
   # Literals and Registers
 
