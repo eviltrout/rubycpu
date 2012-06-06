@@ -222,8 +222,12 @@ grammar Assembler
     "[" [0-9a-f]+ "h]" <OffsetLiteral>
   end
 
+  rule asm_file
+	  [a-zA-Z\_0-9]+ '.asm'
+  end
+
   rule include
-	  "%include" whitespace '"' [a-zA-Z\_0-9]+ '.asm"' EOL <IncludeInstruction>
+	  "%include" whitespace "'" asm_file "'" whitespace? EOL <IncludeInstruction>
   end
 
 end
