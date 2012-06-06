@@ -1,7 +1,7 @@
-%include 'includeme.asm'
+%include 'asm/includeme.asm'
 
 start:
-	jmp start_include
+	call start_include
 	mov [1], 0
 	prn [1]
 eof:
