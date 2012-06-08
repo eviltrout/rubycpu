@@ -53,7 +53,8 @@ grammar Assembler
     or_op / 
     xor /
     shl /
-    shr 
+    shr /
+	include
   end
 
   rule whitespace
@@ -221,5 +222,13 @@ grammar Assembler
     "[" [0-9a-f]+ "h]" <OffsetLiteral>
   end
 
+  rule asm_file
+	  #[a-zA-Z\_0-9]+ '.asm' <AssemblerFile>
+	  [a-zA-Z\_0-9]+ '/'? [a-zA-Z\_0-9]+ '.asm' <AssemblerFile>
+  end
+
+  rule include
+	  "%include" whitespace "'" asm_file "'" <IncludeInstruction>
+  end
 
 end
